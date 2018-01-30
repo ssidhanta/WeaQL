@@ -1,0 +1,104 @@
+namespace java common.thrift
+
+
+struct Status
+{
+    1: required bool success
+    2: string error
+}
+
+struct ApplyDelta
+{
+    1: required string constraintId;
+    2: required string deltaValue;
+    3: required string rowId;
+    4: required bool mustCoordinate;
+}
+
+struct RequestValue
+{
+    1: required string constraintId;
+    2: i32 opId;
+    3: required string fieldName;
+    4: string tempSymbol;
+    5: string requestedValue;
+}
+
+struct SymbolEntry
+{
+    1: required string symbol;
+    2: required bool requiresCoordination;
+    3: string realValue;
+    4: string tableName;
+    5: string fieldName;
+}
+
+struct UniqueValue
+{
+    1: required string constraintId;
+    2: required string value;
+}
+
+struct CoordinatorResponse
+{
+    1: required bool success;
+    2: list<RequestValue> requestedValues;
+    3: string errorMessage;
+}
+
+struct CoordinatorRequest
+{
+    1: list<RequestValue> requests;
+    2: list<UniqueValue> uniqueValues;
+    3: list<ApplyDelta> deltaValues;
+    4: string tempNodePath;
+}
+
+enum CRDTOperationType {
+    INSERT,
+    INSERT_CHILD,
+    UPDATE,
+    UPDATE_CHILD,
+    DELETE,
+    DELETE_PARENT
+}
+
+struct CRDTPreCompiledOperation
+{
+    1: required string sqlOp;
+    2: optional set<string> symbols;
+    3: required bool isCompiled;
+    4: optional CRDTCompiledTransaction compiledTxn;
+}
+
+
+struct CRDTCompiledTransaction
+{
+    1: required list<string> ops;
+    2: required bool isReady;
+    3: required i32 replicatorId;
+    4: required string txnClock;
+}
+
+struct CRDTPreCompiledTransaction {
+    1: i32 id;
+    2: i32 replicatorId;
+    3: string txnClock;
+    4: list<CRDTPreCompiledOperation> opsList;
+    5: map<string,SymbolEntry> symbolsMap;
+    6: bool readyToCommit;
+    7: CoordinatorRequest requestToCoordinator;
+}
+
+service ReplicatorRPC {
+ //bool commitOperation(1:CRDTTransaction op);
+ Status commitOperation(1:CRDTPreCompiledTransaction op);
+ oneway void sendToRemote(1:CRDTCompiledTransaction transaction);
+ oneway void sendBatchToRemote(1:list<CRDTCompiledTransaction> batch);
+}
+
+
+service CoordinatorRPC
+{
+    CoordinatorResponse checkInvariants(1:CoordinatorRequest request);
+}

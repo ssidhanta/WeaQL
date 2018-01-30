@@ -1,0 +1,22 @@
+# Directories
+dist/
+experiments/logs
+applications/tpcw/webapp
+applications/tpcw/src
+applications/tpcc/pom.xml
+applications/tpcc-escada/README.mkd
+applications/tpcc-escada/pom.xml
+applications/tpcc-escada/target
+resources/gen-java/
+experiments/final_results/
+
+# MacOS X
+**/*.DS_Store
+
+# Compiled Object files
+*.class
+scripts/*.pyc
+# IDE
+*.iml
+**/*.idea
+scripts/*.sublime-workspace

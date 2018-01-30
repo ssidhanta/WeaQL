@@ -1,0 +1,45 @@
+##############################################################
+#################### LATENCY-THROUGHPUT #####################
+##############################################################
+# Generate Latency-Throughput (Galera vs WeakDB)
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_2/WeaQL_ready/3R_CRDT/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_2/GALERA_ready/3R_GALERA/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_2/CLUSTER_ready/3R_CLUSTER/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/lt_3r_w2.eps'" ~/code/experiments/plots/lt_global_w2.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_2/WeaQL_ready/5R_CRDT/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_2/GALERA_ready/5R_GALERA/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_2/CLUSTER_ready/5R_CLUSTER/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/lt_5r_w2.eps'" ~/code/experiments/plots/lt_global_w2.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_1/WeaQL_ready/3R_CRDT/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_1/GALERA_ready/3R_GALERA/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_1/CLUSTER_ready/3R_CLUSTER/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/lt_3r_w1.eps'" ~/code/experiments/plots/lt_global_w1.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_1/WeaQL_ready/5R_CRDT/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_1/GALERA_ready/5R_GALERA/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/WORKLOAD_1/CLUSTER_ready/5R_CLUSTER/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/lt_5r_w1.eps'" ~/code/experiments/plots/lt_global_w1.gp
+
+
+##############################################################
+################ COORDINATION OVERHEAD PLOTS #################
+##############################################################
+#Generate Latency-Throughput (WeakDB No Coordination vs WeakDB Coordation)
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/COORDINATION_OVERHEAD/WeaL_uncoordinated/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/COORDINATION_OVERHEAD/WeaQL_coordinated/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/coordination_tps_overhead.eps'" ~/code/experiments/plots/coordination_overhead_tps.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/COORDINATION_OVERHEAD/WeaQL_uncoordinated/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/COORDINATION_OVERHEAD/WeaQL_coordinated/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/coordination_latency_overhead.eps'" ~/code/experiments/plots/coordination_overhead_latency.gp
+
+##############################################################
+############################ SCALABILITY ##########################
+##############################################################
+# Generate Scalbility Plot (Linear vs WeakDB vs Galera)
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/scalability_datafile_w1.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/scalability_w1.eps'" ~/code/experiments/plots/scalability.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/scalability_datafile_w2.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/scalability_w2.eps'" ~/code/experiments/plots/scalability.gp
+
+
+##############################################################
+################### MIDDLEWARE OVERHEAD ######################
+##############################################################
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CRDT_W1/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CLUSTER_W1/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/GALERA_W1/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/middleware_overhead_tps_w1.eps'" ~/code/experiments/plots/middleware_overhead_tps_w1.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CRDT_W1/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CLUSTER_W1/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/GALERA_W1/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/middleware_overhead_latency_w1.eps'" ~/code/experiments/plots/middleware_overhead_latency_w1.gp
+
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CRDT_W2/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CLUSTER_W2/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/GALERA_W2/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/middleware_overhead_tps_w2.eps'" ~/code/experiments/plots/middleware_overhead_tps_w2.gp
+
+gnuplot -e "data1='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CRDT_W2/avg.csv'; data2='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/CLUSTER_W2/avg.csv'; data3='/home/dnl/home/Desktop/AWSOME_RESULTS/MIDDLEWARE_OVERHEAD/GALERA_W2/avg.csv'; outputfile='/home/dnl/home/Desktop/AWSOME_RESULTS/middleware_overhead_latency_w2.eps'" ~/code/experiments/plots/middleware_overhead_latency_w2.gp

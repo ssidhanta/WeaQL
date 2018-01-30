@@ -1,0 +1,10 @@
+FROM mysql/mysql-cluster
+FROM anapsix/alpine-java
+COPY waitformysql.sh /var/lib/
+COPY my.cnf /var/lib/
+COPY my.cnf /etc/
+COPY my.cnf /var/lib/thesis_code-master/
+COPY my.cnf /var/lib/thesis_code-master/scripts/
+RUN export PATH=${PATH}:/usr/local/mysql/bin
+COPY dist/jars/db-transform.jar /var/lib/thesis_code-master/
+CMD ["java","-jar","/var/lib/thesis_code-master/db-transform.jar", "$iparg", "tpcc_crdt"]

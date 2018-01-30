@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config>
+	<topology databasesNum="1" replicatorNum="1" executorsNum="1">
+		<databases>
+			<database id="1" dbHost="10.0.0.56" dbPort="3306" dbUser="sa" dbPwd="101010" />
+		</databases>
+		<coordinators>
+			<coordinator id="1" host="10.0.0.55" port="50020" refDatabase="1" />
+		</coordinators>
+		<replicators>
+			<replicator id="1" host="10.0.0.56" port="50000" refDatabase="1" />
+		</replicators>
+		<proxies>
+			<proxy id="1" host="10.0.0.4" port="50010" refDatabase="1" refReplicator="1" refCoordinator="1" />
+		</proxies>
+	</topology>
+</config>

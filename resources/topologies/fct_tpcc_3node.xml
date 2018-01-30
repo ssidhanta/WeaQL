@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config>
+  <topology databasesNum="3" replicatorNum="3" executorsNum="5">
+    <databases>
+      <database id="1" dbHost="node1" dbPort="3306" dbUser="sa" dbPwd="101010" />
+      <database id="2" dbHost="node2" dbPort="3306" dbUser="sa" dbPwd="101010" />
+      <database id="3" dbHost="node3" dbPort="3306" dbUser="sa" dbPwd="101010" />
+    </databases>
+    <coordinators>
+      <coordinator id="1" host="node1"/>
+      <coordinator id="2" host="node2"/>
+      <coordinator id="3" host="node3"/>
+    </coordinators>
+    <replicators>
+      <replicator id="1" host="node1" port="50000" refDatabase="1" />
+      <replicator id="2" host="node2" port="50001" refDatabase="2" />
+      <replicator id="3" host="node3" port="50002" refDatabase="3" />
+    </replicators>
+    <proxies>
+      <proxy id="1" host="node6" port="50010" refDatabase="1" refReplicator="1"/>
+      <proxy id="2" host="node7" port="50011" refDatabase="2" refReplicator="2"/>
+      <proxy id="3" host="node8" port="50012" refDatabase="3" refReplicator="3"/>
+      <proxy id="4" host="node9" port="50013" refDatabase="3" refReplicator="3"/>
+      <proxy id="5" host="node10" port="50014" refDatabase="2" refReplicator="2"/>
+    </proxies>
+  </topology>
+</config>

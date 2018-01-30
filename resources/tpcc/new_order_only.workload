@@ -1,0 +1,6 @@
+new_order=100
+payment=0
+delivery=0
+order_stat=0
+stock=0
+name=TPCC New-Order

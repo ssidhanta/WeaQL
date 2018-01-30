@@ -1,0 +1,7 @@
+txn_name,commits,aborts,maxLatency,minLatency,avgLatency,avgExecLatency,avgCommitLatency,txnPerSecond
+delivery,0,0,999.0,999.0,999.0,999.0,999.0,0.0
+orderstat,0,0,999.0,999.0,999.0,999.0,999.0,0.0
+neworder,0,0,999.0,999.0,999.0,999.0,999.0,0.0
+payment,0,0,999.0,999.0,999.0,999.0,999.0,0.0
+stock,0,0,999.0,999.0,999.0,999.0,999.0,0.0
+

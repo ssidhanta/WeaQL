@@ -1,0 +1,6 @@
+new_order=0
+payment=0
+delivery=0
+order_stat=50
+stock=50
+name=TPCC Read-Only

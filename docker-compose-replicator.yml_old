@@ -1,0 +1,27 @@
+version: '2'
+services:
+    replicator:
+        #depends_on:
+          #- zoo1
+          #- zoo2
+          #- zoo3
+          #- mysql1
+          #- tpccgendb
+        image: replicator
+        tty: true
+        #restart: always
+        #command: ["sh","/var/lib/waitformysql.sh", "192.168.0.13", "mysql"]
+        networks:
+           backend:
+             ipv4_address: 192.168.0.11
+        #environment:
+            #ZOO_MY_ID: 1
+            #ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+
+networks:
+  backend:
+    driver: bridge
+    ipam: 
+      config:
+      - subnet:   192.168.0.0/16
+        gateway:  192.168.0.254

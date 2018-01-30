@@ -1,0 +1,48 @@
+#FROM ubuntu:16.04
+##FROM mysql:5.7
+#FROM mysql/mysql-cluster
+#FROM anapsix/alpine-java
+#FROM openjdk:8-jdk-alpine
+FROM ubuntu:16.04
+#FROM mysql/mysql-cluster
+#FROM ubuntu:saucy
+
+# Install required packages
+RUN apt-get update
+RUN apt-get install -y openjdk-8-jdk
+RUN apt-get install -y openjdk-8-jre
+RUN update-alternatives --config java
+RUN update-alternatives --config javac
+#RUN DEBIAN_FRONTEND=noninteractive apt-get -y install python
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server mysql-client
+RUN DEBIAN_FRONTEND=noninteractive  apt-get -y install sudo
+RUN mkdir /var/lib/thesis_code-master
+COPY dist/jars/tpcc-client.jar /var/lib/thesis_code-master/
+COPY resources/log4j_weakdb.properties /var/lib/thesis_code-master/
+COPY resources/topologies/docker_tpcc_7node.xml /var/lib/thesis_code-master/
+COPY resources/environment/low_env_localhost_tpcc_default_coord.env /var/lib/thesis_code-master/
+COPY resources/tpcc/workload1 /var/lib/thesis_code-master/
+COPY resources/annotations/tpcc_ddl_sequential_ids.sql /var/lib/thesis_code-master/
+COPY my1.cnf /etc/
+COPY my2.cnf /etc/
+COPY my3.cnf /etc/
+COPY my4.cnf /etc/
+COPY my5.cnf /etc/
+COPY my6.cnf /etc/
+COPY my1.cnf /etc/mysql/
+COPY my2.cnf /etc/mysql/
+COPY my3.cnf /etc/mysql/
+COPY my4.cnf /etc/mysql/
+COPY my5.cnf /etc/mysql/
+COPY my6.cnf /etc/mysql/
+#COPY my.cnf /var/lib/thesis_code-master/
+#COPY my.cnf /var/lib/thesis_code-master/scripts/
+COPY serverStart1.sh /var/lib/
+COPY replicatorStart1.sh /var/lib/
+RUN chmod -R 777 /var/lib/thesis_code-master
+RUN export PATH=${PATH}:/usr/local/mysql/bin
+#RUN echo 'export PATH=$PATH:/usr/local/mysql/bin:/bin/mysql' >> ~/.bash_profile
+#RUN mysql -uroot -p101010 -e "create database testdb"  
+#CMD tail -f /dev/null
+CMD ["sh","/var/lib/replicatorStart1.sh", "tail -f /dev/null"]
+#CMD sh /var/lib/serverStart1.sh  && java -Dlog4j.configuration=file:"/var/lib/thesis_code-master/log4j_weakdb.properties" -jar /var/lib/thesis_code-master/tpcc-client.jar /var/lib/thesis_code-master/docker_tpcc_7node.xml /var/lib/thesis_code-master/low_env_localhost_tpcc_default_coord.env /var/lib/thesis_code-master/workload1 1 1 60 jdbc && tail -f /dev/null

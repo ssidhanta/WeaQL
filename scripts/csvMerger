@@ -1,0 +1,118 @@
+import sys
+import logging
+import glob
+import pandas as pd
+import configParser as config
+import os.path
+import fabfile as fab
+from optparse import OptionParser
+
+logger = logging.getLogger('csvMerger')
+logger.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+formatter = logging.Formatter('[%(levelname)s] %(message)s')
+ch.setFormatter(formatter)
+ch.setLevel(logging.DEBUG)
+logger.addHandler(ch)
+
+################################################################################################
+#   VARIABLES
+################################################################################################
+
+LATENCY_THROUGHPUT_1LINE = "latency-throughput_1line.gp"
+LATENCY_THROUGHPUT_2LINE = "latency-throughput_2line.gp"
+SCALABILITY_1LINE = "scalability_1line.gp"
+SCALABILITY_2LINE = "scalability_2line.gp"
+OVERHEAD = "overhead_chart.gp"
+
+parser = OptionParser()
+parser.add_option("-d", "--dir", dest="dataDir",
+		  help="CSVs files directory")
+
+################################################################################################
+# LATENCY-THROUGHPUT METHODS
+################################################################################################
+
+
+def mergeCSVsFromDir(dataDir):
+ 	csvFiles = glob.glob(dataDir + "/*.csv")
+ 	prefixsMap = dict()
+ 	#print csvFiles
+
+	for file in csvFiles:
+ 		index = file.rfind('_')
+ 		commonPrefix = file[:index+1]
+ 		if "merged" in file:
+ 			continue
+
+		if not commonPrefix in prefixsMap:
+			prefixsMap[commonPrefix] = list()
+
+		prefixsMap[commonPrefix].append(file)
+
+	for key, value in prefixsMap.iteritems():
+		mergeTempFiles(value,dataDir,key)
+
+	csvFiles = glob.glob(dataDir + "/*merged*")
+	frame = pd.DataFrame()
+	list_ = []
+
+	for file in csvFiles:
+		df = pd.read_csv(file, index_col=False)
+		list_.append(df)
+
+	frame = pd.concat(list_)
+	frame = frame.sort('users',ascending=True, inplace=False, kind='quicksort', na_position='last')
+	datafile = dataDir + "/datafile"
+	datafile += ".csv"
+
+	frame.to_csv(datafile, sep=",", index=False)
+	sys.exit()
+
+def mergeTempFiles(filesList,baseDir,prefix):
+	frame = pd.DataFrame()
+	list_ = []
+	for file_ in filesList:
+		df = pd.read_csv(file_, index_col=None, header=0)
+		list_.append(df)
+
+	frame = pd.concat(list_)
+	# CSV format: #writeRate,coordinationRate,avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc,users,
+	# neworder_rate,orderstat_rate,payment_rate,delivery_rate,stocklevel_rate
+	totalCommits = frame['commits'].sum()
+	totalAborts = frame['aborts'].sum()
+	avgLatency = frame['avgLatency'].mean()
+	avgReadLatency = frame['avgReadLatency'].mean()
+	avgWriteLatency = frame['avgWriteLatency'].mean()
+	jdbc = frame['jdbc'].iloc[0]
+	users = frame['users'].sum()
+	neworder_rate = frame['neworder_rate'].iloc[0]
+	orderstat_rate = frame['orderstat_rate'].iloc[0]
+	payment_rate = frame['payment_rate'].iloc[0]
+	delivery_rate = frame['delivery_rate'].iloc[0]
+	stocklevel_rate = frame['stocklevel_rate'].iloc[0]
+
+	fileContent = 'avgLatency,avgReadLatency,avgWriteLatency,commits,aborts,jdbc,users,neworder_rate,orderstat_rate,payment_rate,delivery_rate,stocklevel_rate\n'
+	fileContent += "{},{},{},{},{},{},{},{},{},{},{},{}".format(avgLatency,avgReadLatency,avgWriteLatency,totalCommits,totalAborts,
+	                                                            jdbc,users,neworder_rate,orderstat_rate,payment_rate,delivery_rate,stocklevel_rate)
+
+	fileName = prefix + "merged.csv"
+	#logger.info("creating csv file: %s", fileName)
+	f = open(fileName, 'w')
+	f.write(fileContent)
+	f.close()
+
+if __name__ == "__main__":
+	(options, args) = parser.parse_args()
+
+	mandatories = ['dataDir']
+	for m in mandatories:
+		if not options.__dict__[m]:
+			print "mandatory option is missing\n"
+			parser.print_help()
+			exit(-1)
+
+	dataDir = options.__dict__['dataDir']
+	logger.info("merging csv from dir {}".format(dataDir))
+	mergeCSVsFromDir(dataDir)
+

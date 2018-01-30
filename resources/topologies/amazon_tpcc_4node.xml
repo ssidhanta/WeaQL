@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config>
+	<topology databasesNum="4" replicatorNum="4" executorsNum="4">
+		<databases>
+			<database id="1" dbHost="10.0.0.40" dbPort="3306" dbUser="sa" dbPwd="101010" />
+			<database id="2" dbHost="10.0.0.38" dbPort="3306" dbUser="sa" dbPwd="101010" />
+			<database id="3" dbHost="10.0.0.39" dbPort="3306" dbUser="sa" dbPwd="101010" />
+			<database id="4" dbHost="10.0.0.36" dbPort="3306" dbUser="sa" dbPwd="101010" />
+		</databases>
+		<coordinators>
+			<coordinator id="1" host="10.0.0.35" port="50020" refDatabase="1" />
+		</coordinators>
+		<replicators>
+			<replicator id="1" host="10.0.0.40" port="50000" refDatabase="1" />
+			<replicator id="2" host="10.0.0.38" port="50001" refDatabase="2" />
+			<replicator id="3" host="10.0.0.39" port="50002" refDatabase="3" />
+			<replicator id="4" host="10.0.0.36" port="50003" refDatabase="4" />
+		</replicators>
+		<proxies>
+			<proxy id="1" host="10.0.0.236" port="50010" refDatabase="1" refReplicator="1" refCoordinator="1" />
+			<proxy id="2" host="10.0.0.236" port="50011" refDatabase="2" refReplicator="2" refCoordinator="1" />
+			<proxy id="3" host="10.0.0.236" port="50012" refDatabase="3" refReplicator="3" refCoordinator="1" />
+			<proxy id="4" host="10.0.0.236" port="50013" refDatabase="4" refReplicator="4" refCoordinator="1" />
+		</proxies>
+	</topology>
+</config>

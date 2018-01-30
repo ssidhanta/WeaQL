@@ -1,0 +1,48 @@
+#FROM mysql:5.7
+#FROM mysql/mysql-server
+#FROM anapsix/alpine-java
+FROM openjdk:8-jdk-alpine
+FROM ubuntu:16.04
+#FROM mysql/mysql-cluster
+#FROM ubuntu:saucy
+
+# Install required packages
+RUN apt-get update
+RUN apt-get install -y openjdk-8-jdk
+RUN apt-get install -y openjdk-8-jre
+RUN update-alternatives --config java
+RUN update-alternatives --config javac
+#RUN DEBIAN_FRONTEND=noninteractive apt-get -y install python
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
+#python-mysqldb
+
+# Add our python app code to the image
+#RUN mkdir -p /app
+#ADD . /app
+#WORKDIR /app
+
+# Set the default command to execute
+#COPY cmd.sh /cmd.sh
+#RUN chmod +x /cmd.sh
+#CMD cmd.sh
+COPY dist/jars/replicator.jar /var/lib/thesis_code-master/
+COPY dist/jars/db-transform.jar /var/lib/thesis_code-master/
+COPY dist/jars/tpcc-gendb.jar /var/lib/thesis_code-master/
+COPY resources/topologies/docker_tpcc_7node.xml /var/lib/thesis_code-master/
+COPY resources/log4j_weakdb.properties /var/lib/thesis_code-master/
+COPY resources/zoo.cfg /var/lib/thesis_code-master/
+COPY resources/environment/low_env_localhost_tpcc_default_coord_copy.env /var/lib/thesis_code-master/
+COPY resources/environment/low_env_localhost_tpcc_default_coord.env /var/lib/thesis_code-master/
+COPY resources/annotations/tpcc_ddl_sequential_ids.sql /var/lib/thesis_code-master/
+COPY resources/annotations/tpcc_ddl_sequential_ids.sql /var/lib/thesis_code-master/
+#COPY waitformysql.sh /var/lib/
+COPY my.cnf /etc/
+COPY my.cnf /var/lib/
+COPY my.cnf /var/lib/thesis_code-master/
+COPY my.cnf /var/lib/thesis_code-master/scripts/
+COPY replicatorStart.sh /var/lib/
+COPY src/weaql/server/agents/coordination/zookeeper/EZKCoordinationExtension.java /var/lib/thesis_code-master/src/weaql/server/agents/coordination/zookeeper/
+RUN chmod -R 777 /var/lib/thesis_code-master
+RUN export PATH=${PATH}:/usr/local/mysql/bin
+#CMD ["sh","/var/lib/replicatorStart.sh", "tail -f /dev/null"]
+CMD mysql -u root -e "ALTER USER 'root'@'%' IDENTIFIED BY '101010';" && java -jar /var/lib/thesis_code-master/db-transform.jar "192.168.0.1" "tpcc_crdt" && java -jar /var/lib/thesis_code-master/tpcc-gendb.jar "192.168.0.1" "tpcc_crdt" && java -Dlog4j.configuration=file:"/var/lib/thesis_code-master/log4j_weakdb.properties" -jar /var/lib/thesis_code-master/replicator.jar /var/lib/thesis_code-master/docker_tpcc_7node.xml /var/lib/thesis_code-master/low_env_localhost_tpcc_default_coord.env 1 && tail -f /dev/null

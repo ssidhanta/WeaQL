@@ -1,0 +1,439 @@
+<project name="WeaQL Project" default="compile" basedir=".">
+
+	<!-- Edit the follow properties according to your system -->
+	<property environment="env" />
+	<property name="mysql.host" value="localhost" />
+	<property name="mysql.port" value="3306" />
+	<property name="mysql.user" value="sa" />
+	<property name="mysql.pwd" value="101010" />
+	<property name="tomcat.host" value="localhost" />
+	<property name="tomcat.port" value="8080" />
+	<property name="defaultJDBCDriver" value="com.mysql.jdbc.Driver" />
+	<property name="dbBaseURL" value="jdbc:mysql://localhost:3306/" />
+
+	<!-- Main properties for this build -->
+	<property name="base.dir" value="." />
+	<property name="ezk.base.dir" value="${base.dir}/ezk" />
+	<property name="ezk-build.file" value="${ezk.base.dir}/build.xml" />
+	<property name="deploy.dir" value="/local/dp.lopes/deploy" />
+	<property name="src.dir" value="${base.dir}/src" />
+	<property name="base.libs.dir" value="${base.dir}/libs" />
+	<property name="weaql.libs.dir" value="${base.dir}/libs/weak" />
+	<property name="ezk.libs.dir" value="${base.dir}/libs/ezk" />
+	<property name="dist.dir" value="${base.dir}/dist" />
+	<property name="classes.dir" value="${dist.dir}/classes" />
+	<property name="jars.dir" value="${dist.dir}/jars" />
+	<property name="resources.dir" value="${base.dir}/resources" />
+	<property name="applications.dir" value="${base.dir}/applications" />
+	<property name="tpcc.dir" value="${applications.dir}/tpcc" />
+
+	<!-- Generated JARs names -->
+	<property name="csv-parser-jar" value="csv-parser.jar" />
+	<property name="preload-tpcc-jar" value="preload-tpcc.jar" />
+	<property name="csv-merger-jar" value="csv-merger-jar" />
+	<property name="weaql-common-jar" value="weaql.common.jar" />
+	<property name="weaql-util-jar" value="weaql-util.jar" />
+	<property name="weaql-server-jar" value="weaql.server.jar" />
+	<property name="weaql-client-jar" value="weaql.client.jar" />
+	<property name="weaql-apps-jar" value="apps.jar" />
+	<property name="weaql-thrift-bundled-jar" value="weaql-thrift-bundled.jar" />
+
+	<!-- Custom ant tasks -->
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties">
+		<classpath>
+			<pathelement location="${base.libs.dir}/ant-contrib-0.3.jar" />
+		</classpath>
+	</taskdef>
+
+	<!-- TPC-C properties -->
+	<property name="tpcc.src.dir" value="${tpcc.dir}/src" />
+	<property name="tpcc.dist.dir" value="${tpcc.dir}/dist" />
+	<property name="tpcc.classes.dir" value="${tpcc.dist.dir}/classes" />
+
+	<!-- Path definitions -->
+	<path id="weaql.classpath">
+		<fileset dir="${weaql.libs.dir}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<path id="weaql.runtime.classpath">
+		<pathelement path="${classes.dir}" />
+	</path>
+
+	<path id="tpcc.classpath">
+		<fileset dir="${base.dir}/libs/weak">
+			<include name="slf4j-api-1.7.10.jar" />
+			<include name="log4j-1.2.17.jar" />
+			<include name="slf4j-log4j12-1.7.10.jar" />
+			<include name="commons-cli-1.2.jar" />
+			<include name="commons-dbutils-1.6.jar" />
+			<include name="commons-lang3-3.3.2.jar" />
+			<include name="mysql-connector-java-5.1.17-bin.jar" />
+		</fileset>
+		<fileset dir="${jars.dir}">
+			<include name="weaql.common.jar" />
+			<include name="weaql.client.jar" />
+		</fileset>
+	</path>
+	<path id="tpcc.runtime.classpath">
+		<pathelement path="${tpcc.classes.dir}" />
+		<fileset dir="${dist.dir}/jars/">
+			<include name="${weaql-common-jar}" />
+			<include name="${weaql-client-jar}" />
+		</fileset>
+	</path>
+
+	<!-- WeaQL tasks -->
+	<target name="purge" description="Purges everything">
+		<antcall target="clean" />
+		<antcall target="tpcc-clean" />
+	</target>
+	<target name="init" depends="clean">
+		<tstamp />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${jars.dir}" />
+	</target>
+	<target name="clean" description="Clean WeaQL distribution">
+		<delete dir="${dist.dir}" />
+	</target>
+	<target name="compile" depends="init" description="Compile WeaQL sources">
+		<touch>
+			<fileset dir="${src.dir}" />
+		</touch>
+		<javac srcdir="${src.dir}/" destdir="${classes.dir}" source="1.7" target="1.7" debug="true"
+			   includeantruntime="false">
+			<classpath refid="weaql.classpath" />
+		</javac>
+	</target>
+	<target name="minimal-jars" depends="compile">
+		<jar destfile="${jars.dir}/${weaql-common-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="weaql/common/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weaql-util-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="weaql/util/**/*.class" />
+				<include name="util/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weaql-client-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="weaql/client/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weaql-server-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="weaql/server/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weaql-thrift-bundled-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="weaql/common/thrift/*.class" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="libthrift-0.9.2.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/${weaql-apps-jar}">
+			<fileset dir="${classes.dir}">
+				<include name="applications/**/*.class" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/${csv-parser-jar}">
+			<manifest>
+				<attribute name="Main-Class" value="util.csv.CSVMergerMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<fileset dir="${classes.dir}">
+				<include name="util/**/*.class" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-csv-1.2.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/${csv-merger-jar}">
+			<manifest>
+				<attribute name="Main-Class" value="util.csv.CSVRunsMerger" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<fileset dir="${classes.dir}">
+				<include name="util/**/*.class" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-csv-1.2.jar" />
+			</zipgroupfileset>
+		</jar>
+	</target>
+	<target name="dist" depends="minimal-jars, tpcc-init"
+			description="Generates Main Jars">
+		<jar destfile="${jars.dir}/zookeeper-bootstrap.jar">
+			<manifest>
+				<attribute name="Main-Class" value="weaql.server.agents.coordination.zookeeper.ZookeeperBootstrap" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_zookeeper.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-lang3-3.3.2.jar" />
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="ezk-zookeeper.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-thrift-bundled-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-server-jar}" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/db-transform.jar">
+			<manifest>
+				<attribute name="Main-Class" value="weaql.util.dbtransform.DatabaseTransformerMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-util-jar}" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/zookeeper-server.jar">
+			<manifest>
+				<attribute name="Main-Class" value="org.apache.zookeeper.server.quorum.QuorumPeerMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_zookeeper.properties" />
+			</fileset>
+			<zipgroupfileset dir="${ezk.libs.dir}">
+				<include name="slf4j-api-1.6.1.jar" />
+				<include name="netty-3.7.0.Final.jar" />
+				<include name="slf4j-log4j12-1.6.1.jar" />
+				<include name="log4j-1.2.16.jar" />
+				<include name="jline-0.9.94.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-thrift-bundled-jar}" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="ezk-zookeeper.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/replicator.jar">
+			<manifest>
+				<attribute name="Main-Class" value="weaql.server.replicator.ReplicatorMain" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-lang3-3.3.2.jar" />
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="ezk-zookeeper.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-thrift-bundled-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-server-jar}" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/micro-gendb.jar">
+			<manifest>
+				<attribute name="Main-Class" value="applications.micro.MicroLoad" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${classes.dir}">
+				<include name="applications/**/*.class" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/micro-client.jar">
+			<manifest>
+				<attribute name="Main-Class" value="applications.micro.MicroBenchmark" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/tpcc-client.jar">
+			<manifest>
+				<attribute name="Main-Class" value="applications.tpcc.TpccBenchmark" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="commons-lang3-3.3.2.jar" />
+				<include name="jsqlparser-0.9.2.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-thrift-bundled-jar}" />
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-client-jar}" />
+				<include name="${weaql-apps-jar}" />
+			</zipgroupfileset>
+		</jar>
+		<jar destfile="${jars.dir}/${preload-tpcc-jar}">
+			<manifest>
+				<attribute name="Main-Class" value="util.preload.PreloadDatabase" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-util-jar}" />
+			</zipgroupfileset>
+		</jar>
+
+		<javac srcdir="${tpcc.src.dir}" includes="**/*.java" includeantruntime="false"
+			   destdir="${tpcc.classes.dir}"
+			   debug="true" deprecation="false" nowarn="yes">
+			<classpath refid="tpcc.classpath" />
+		</javac>
+		<jar destfile="${jars.dir}/tpcc-gendb.jar" basedir="${tpcc.classes.dir}">
+			<manifest>
+				<attribute name="Class-Path" value="." />
+				<attribute name="Main-Class" value="com.codefutures.tpcc.TpccLoad" />
+			</manifest>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="log4j-1.2.17.jar" />
+				<include name="slf4j-log4j12-1.7.10.jar" />
+				<include name="slf4j-api-1.7.10.jar" />
+				<include name="mysql-connector-java-5.1.17-bin.jar" />
+				<include name="commons-dbutils-1.6.jar" />
+			</zipgroupfileset>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+		</jar>
+		<jar destfile="${jars.dir}/tpcc-sqlite-gendb.jar">
+			<manifest>
+				<attribute name="Main-Class" value="util.TPCCSqlite" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${resources.dir}">
+				<include name="log4j_weaql.properties" />
+			</fileset>
+			<zipgroupfileset dir="${weaql.libs.dir}">
+				<include name="sqlite-jdbc-3.7.2.jar" />
+			</zipgroupfileset>
+			<zipgroupfileset dir="${jars.dir}">
+				<include name="${weaql-common-jar}" />
+				<include name="${weaql-util-jar}" />
+			</zipgroupfileset>
+		</jar>
+	</target>
+	<target name="deploy" depends="dist" description="Deploy WeaQL Distribution">
+		<delete dir="${deploy.dir}" />
+		<mkdir dir="${deploy.dir}/topologies" />
+		<mkdir dir="${deploy.dir}/annotations" />
+		<mkdir dir="${deploy.dir}/environment" />
+		<mkdir dir="${deploy.dir}/tpcc" />
+		<mkdir dir="${deploy.dir}/src" />
+		<copy todir="${deploy.dir}">
+			<fileset dir="${jars.dir}">
+				<include name="db-transform.jar" />
+				<include name="preload-tpcc.jar" />
+				<include name="replicator.jar" />
+				<include name="tpcc-weaql.client.jar" />
+				<include name="tpcc-gendb.jar" />
+				<include name="zookeeper-bootstrap.jar" />
+				<include name="zookeeper-weaql.server.jar" />
+			</fileset>
+			<fileset dir="${resources.dir}">
+				<include name="zoo.cfg" />
+				<include name="log4j_weaql.properties" />
+				<include name="log4j_zookeeper.properties" />
+			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/src">
+			<fileset dir="${src.dir}" includes="**" />
+		</copy>
+		<copy todir="${deploy.dir}/topologies">
+			<fileset dir="${resources.dir}/topologies">
+				<include name="*.xml" />
+			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/annotations">
+			<fileset dir="${resources.dir}/annotations">
+				<include name="*.sql" />
+			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/environment">
+			<fileset dir="${resources.dir}/environment">
+				<include name="*" />
+			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/tpcc">
+			<fileset dir="${resources.dir}/tpcc">
+				<include name="*" />
+			</fileset>
+		</copy>
+		<copy todir="${deploy.dir}/tpcw">
+			<fileset dir="${resources.dir}/tpcw">
+				<include name="*" />
+			</fileset>
+		</copy>
+	</target>
+
+	<!-- TPCC tasks -->
+	<target name="tpcc-init" depends="tpcc-clean">
+		<tstamp />
+		<mkdir dir="${tpcc.classes.dir}" />
+	</target>
+	<target name="tpcc-clean">
+		<delete dir="${tpcc.dist.dir}" />
+	</target>
+
+	<taskdef name="one-jar" classname="com.simontuffs.onejar.ant.OneJarTask"
+			 classpath="${base.libs.dir}/one-jar-ant-task-0.97.jar"
+			 onerror="report" />
+
+</project>
+

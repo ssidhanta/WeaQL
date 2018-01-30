@@ -1,0 +1,61 @@
+#FROM mysql:5.7
+#FROM mysql/mysql-server
+#FROM anapsix/alpine-java
+FROM ubuntu:16.04
+#FROM mysql/mysql-cluster
+#FROM ubuntu:saucy
+
+# Install required packages
+RUN apt-get update
+RUN apt-get install  -y software-properties-common
+RUN add-apt-repository ppa:openjdk-r/ppa
+#RUN  apt-get update
+RUN apt-get install -y openjdk-8-jdk
+#RUN apt-get install -y openjdk-8-jre
+RUN update-alternatives --config java
+RUN update-alternatives --config javac
+RUN mkdir /var/lib/thesis_code-master
+#RUN DEBIAN_FRONTEND=noninteractive apt-get -y install python
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server mysql-client
+RUN DEBIAN_FRONTEND=noninteractive  apt-get -y install sudo
+COPY thesis_code-master/resources/tpcc/workload1 /var/lib/thesis_code-master/
+COPY thesis_code-master/dist/jars/replicator.jar /var/lib/thesis_code-master/
+COPY thesis_code-master/dist/jars/db-transform.jar /var/lib/thesis_code-master/
+COPY thesis_code-master/dist/jars/tpcc-gendb.jar /var/lib/thesis_code-master/
+COPY thesis_code-master/dist/jars/tpcc-client.jar /var/lib/thesis_code-master/
+COPY thesis_code-master/resources/topologies/docker_tpcc_7node.xml /var/lib/thesis_code-master/
+COPY thesis_code-master/resources/log4j_weakdb.properties /var/lib/thesis_code-master/
+COPY thesis_code-master/resources/zoo.cfg /var/lib/thesis_code-master/
+COPY thesis_code-master/resources/environment/low_env_localhost_tpcc_default_coord.env /var/lib/thesis_code-master/
+COPY thesis_code-master/resources/annotations/tpcc_ddl_sequential_ids.sql /var/lib/thesis_code-master/
+#COPY waitformysql.sh /var/lib/
+COPY thesis_code-master/replicatorStart.sh /var/lib/
+COPY thesis_code-master/replicatorStart1.sh /var/lib/
+COPY thesis_code-master/serverStart.sh /var/lib/
+COPY thesis_code-master/serverStart1.sh /var/lib/
+COPY thesis_code-master/my1.cnf /etc/
+COPY thesis_code-master/my2.cnf /etc/
+COPY thesis_code-master/my3.cnf /etc/
+COPY thesis_code-master/my4.cnf /etc/
+COPY thesis_code-master/my5.cnf /etc/
+COPY thesis_code-master/my6.cnf /etc/
+COPY thesis_code-master/my1.cnf /etc/mysql/
+COPY thesis_code-master/my2.cnf /etc/mysql/
+COPY thesis_code-master/my3.cnf /etc/mysql/
+COPY thesis_code-master/my4.cnf /etc/mysql/
+COPY thesis_code-master/my5.cnf /etc/mysql/
+COPY thesis_code-master/my6.cnf /etc/mysql/
+COPY thesis_code-master/src/weaql/server/agents/coordination/zookeeper/EZKCoordinationExtension.java /var/lib/thesis_code-master/src/weaql/server/agents/coordination/zookeeper/
+COPY thesis_code-master/scripts/sql/create_tpcc.sql /var/lib/thesis_code-master/scripts/sql/
+COPY thesis_code-master/scripts/sql/create_tpcc_crdt.sql /var/lib/thesis_code-master/scripts/sql/
+COPY thesis_code-master/scripts/sql/create_crdt_tpcc.sql /var/lib/thesis_code-master/scripts/sql/
+RUN chmod -R 777 /var/lib/thesis_code-master
+RUN export PATH=${PATH}:/usr/local/mysql/bin
+RUN echo "export PATH="$PATH:/usr/bin"" >> ~/.bashrc
+#RUN /etc/init.d/mysql start
+#ENTRYPOINT ["/var/lib/replicatorStart.sh"]
+WORKDIR /var/lib
+#CMD ./replicatorStart.sh && ./serverStart1.sh  && tail -f /dev/null
+CMD ./replicatorStart.sh && tail -f /dev/null
+#CMD ["sh","/var/lib/replicatorStart.sh", "tail -f /dev/null"]
+#CMD service mysql start && mysql -u root -e "ALTER USER 'root'@'%' IDENTIFIED BY '101010';" && java -jar /var/lib/thesis_code-master/db-transform.jar "192.168.0.1" "tpcc_crdt" && java -jar /var/lib/thesis_code-master/tpcc-gendb.jar "192.168.0.1" "tpcc_crdt" && java -Dlog4j.configuration=file:"/var/lib/thesis_code-master/log4j_weakdb.properties" -jar /var/lib/thesis_code-master/replicator.jar /var/lib/thesis_code-master/docker_tpcc_7node.xml /var/lib/thesis_code-master/low_env_localhost_tpcc_default_coord.env 1 && tail -f /dev/null

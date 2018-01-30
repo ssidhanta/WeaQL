@@ -1,0 +1,10 @@
+FROM mysql/mysql-cluster
+FROM anapsix/alpine-java
+COPY dist/jars/tpcc-gendb.jar /var/lib/thesis_code-master/
+COPY waitformysql.sh /var/lib/
+COPY my.cnf /var/lib/
+COPY my.cnf /etc/
+COPY my.cnf /var/lib/thesis_code-master/
+COPY my.cnf /var/lib/thesis_code-master/scripts/
+RUN export PATH=${PATH}:/usr/local/mysql/bin
+CMD ["java","-jar","/var/lib/thesis_code-master/tpcc-gendb.jar", "$iparg", "tpcc_crdt","$j"]

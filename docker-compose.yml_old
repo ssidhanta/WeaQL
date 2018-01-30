@@ -1,0 +1,166 @@
+version: '2'
+services:
+    ndb_mgmd:
+        image: mysql/mysql-cluster
+        container_name: managementx1
+        environment:
+          MYSQL_ROOT_PASSWORD: "101010"
+        build: .
+        networks:
+          backend:
+            ipv4_address: 192.168.0.5
+
+    ndbd1:
+        depends_on:
+          - ndb_mgmd
+        image: mysql/mysql-cluster
+        container_name: ndbdx1
+        environment:
+          MYSQL_ROOT_PASSWORD: "101010"
+        build: .
+        networks:
+          backend:
+            ipv4_address: 192.168.0.6
+
+    ndbd2:
+        depends_on:
+          - ndb_mgmd
+        image: mysql/mysql-cluster
+        container_name: ndbdx2
+        environment:
+          MYSQL_ROOT_PASSWORD: "101010"
+        build: .
+        networks:
+          backend:
+            ipv4_address: 192.168.0.7
+  
+    mysql1:
+        depends_on:
+          - ndbd1
+          - ndbd2
+        image: mysql/mysql-cluster
+        container_name: mysqlx1
+        ports:
+          - 6603:3306
+        environment:
+          MYSQL_ROOT_PASSWORD: "101010"
+        build: .
+        networks:
+          backend:
+            ipv4_address: 192.168.0.13
+    
+    zoo1:
+        depends_on:
+          - mysql1
+        image: ezkweaql
+        tty: true
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.2
+        ports:
+            - 2181:2181
+        #environment:
+            #ZOO_MY_ID: 1
+            #ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+
+    zoo2:
+        depends_on:
+          - mysql1
+        image: ezkweaql
+        tty: true
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.3
+        ports:
+            - 2182:2181
+        #environment:
+            #ZOO_MY_ID: 2
+            #ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+
+    zoo3:
+        depends_on:
+          - mysql1
+        image: ezkweaql
+        tty: true
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.4
+        ports:
+            - 2183:2181
+        #environment:
+            #ZOO_MY_ID: 3
+            #ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+
+    mysqlload:
+        depends_on:
+          - zoo1
+          - zoo2
+          - zoo3
+          - mysql1
+        image: mysqlload
+        tty: true
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.8
+        command: ["/bin/sh", "/var/lib/waitformysql.sh", "192.168.0.13", "mysql"]
+        #environment:
+            #ZOO_MY_ID: 1
+            #ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888
+
+    dbtransform:
+        depends_on:
+          - zoo1
+          - zoo2
+          - zoo3
+          - mysql1
+        image: mysqlload
+        tty: true
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.9
+        command: ["/bin/sh", "/var/lib/waitformysql.sh", "192.168.0.13", "mysql"]
+
+    tpccgendb:
+        depends_on:
+          - zoo1
+          - zoo2
+          - zoo3
+          - mysqlload
+        image: tpccgendb
+        tty: true
+        #restart: always
+        command: ["sh","/var/lib/waitformysql.sh", "192.168.0.13", "mysql"]
+        networks:
+           backend:
+             ipv4_address: 192.168.0.10
+
+    replicator:
+        depends_on:
+          - zoo1
+          - zoo2
+          - zoo3
+          - mysqlload
+          - tpccgendb
+        image: replicator
+        tty: true
+        #restart: always
+        command: ["sh","/var/lib/waitformysql.sh", "192.168.0.13", "mysql"]
+        networks:
+           backend:
+             ipv4_address: 192.168.0.11
+        #environment:
+            #ZOO_MY_ID: 1
+            #ZOO_SERVERS: server.1=zoo1:2888:3888 server.2=zoo2:2888:3888 server.3=zoo3:2888:3888   
+
+networks:
+  backend:
+    driver: bridge
+    ipam: 
+      config:
+      - subnet:   192.168.0.0/16
+        gateway:  192.168.0.254

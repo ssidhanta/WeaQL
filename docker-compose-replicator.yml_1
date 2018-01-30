@@ -1,0 +1,36 @@
+version: '2'
+services:
+    replicator1:
+        image: replicator
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.1
+        environment:
+          MYSQL_ROOT_PASSWORD: 101010
+
+    replicator2:
+        image: replicator
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.2
+        environment:
+          MYSQL_ROOT_PASSWORD: 101010
+
+    replicator3:
+        image: replicator
+        #restart: always
+        networks:
+           backend:
+             ipv4_address: 192.168.0.3
+        environment:
+          MYSQL_ROOT_PASSWORD: 101010
+
+networks:
+  backend:
+    driver: bridge
+    ipam: 
+      config:
+      - subnet:   192.168.0.0/16
+        gateway:  192.168.0.254
